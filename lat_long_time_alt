@@ -1,0 +1,34 @@
+import serial
+import csv
+from datetime import datetime
+
+# Nombre del archivo CSV con la fecha actual
+csv_filename = datetime.now().strftime("%Y-%m-%d") + "_gps_data.csv"
+
+# Abre el puerto serie ACM donde está conectado el GPS
+with serial.Serial('/dev/ttyACM0', 9600) as ser:
+    # Crea el archivo CSV y escribe el encabezado
+    with open(csv_filename, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['Time', 'Latitude', 'Longitude', 'Altitude'])
+
+        while True:
+            # Lee una línea de datos del GPS
+            line = ser.readline().decode('utf-8').strip()
+
+            # Si la línea comienza con '$GPGGA', procesa los datos
+            if line.startswith('$GPGGA'):
+                # Separa los campos de la línea
+                data = line.split(',')
+
+                # Extrae la hora, latitud, longitud y altitud
+                time = data[1]
+                latitude = data[2]
+                longitude = data[4]
+                altitude = data[9]
+
+                # Escribe los datos en el archivo CSV
+                writer.writerow([time, latitude, longitude, altitude])
+
+                # Imprime los datos para verificar en la consola
+                print(f'Time: {time}, Latitude: {latitude}, Longitude: {longitude}, Altitude: {altitude}')
